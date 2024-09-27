@@ -282,7 +282,7 @@ Evaluation 테이블에 일부 정보(applicant_id, evaluation_id, score)만을 
 
 ![image](https://github.com/user-attachments/assets/07122181-572c-42b9-8e0f-8ad65e09c663)
 
-**`EXPLAIN ANALYZE`**의 결과에서 실제로 커버링 인덱스가 유도됨을 알 수 있습니다.
+`EXPLAIN ANALYZE`의 결과에서 실제로 커버링 인덱스가 유도됨을 알 수 있습니다.
 
 ---
 
