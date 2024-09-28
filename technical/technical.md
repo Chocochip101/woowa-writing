@@ -291,4 +291,4 @@ Evaluation 테이블에 일부 정보(applicant_id, evaluation_id, score)만을 
 최종적으로 평균 API 실행 시간이 900ms에서 101ms로 최적화되었습니다!
 
 
-![image](https://github.com/user-attachments/assets/ccc18c0c-c9b6-47b5-a425-82fbac34b5a3)
+![image](https://github.com/user-attachments/assets/7e98c668-39f1-4a47-9c3e-ef31d922a2a7)
