@@ -244,7 +244,7 @@ type이 ALL이기 때문에 Full Table Scan으로 실행되고, 어떠한 인덱
 1. **Table scan on `e1_0`**:  Evaluation 테이블에 대한 Full Table Scan을 진행합니다. 총 `994125`개의 행을 처리하고, 실제 실행 시간은 `0.0489ms`~ `331ms`입니다.
 2. **Index range scan on `a1_0` using `fk_applicant_to_process`**:`fk_applicant_to_process` 인덱스를 사용한 범위 스캔입니다. 이는 효율적으로 인덱스를 사용하여 `process_id`가 `1, 2, 3, 4`인 항목을 스캔한 것입니다. 실제 실행 시간은 `0.0653ms`~ `0.382ms` 사이이며, `150`개의 행이 처리합니다.
 3. **Hash**: 해시 작업이 수행된 것으로, 조인을 효율적으로 수행하기 위해 데이터를 해싱한 단계입니다. 
-4. **Left hash join:** 해시 조인을 통해 Applicant 테이블과 Evaluation 테이블을 조인합니다. 실제 시간이 `503ms`에서 `685ms` 사이이며, `742`개의 행을 처리했습니다.
+4. **Left hash join:** 해시 조인 방식으로 Applicant 테이블과 Evaluation 테이블을 조인합니다. 실제 시간이 `503ms`에서 `685ms` 사이이며, `742`개의 행을 처리했습니다.
 5. **Aggregate using temporary table**: 임시 테이블을 사용한 집계 작업을 수행합니다. SELECT에서 사용된 `count()`   , `avg()` 를 처리합니다. 
 6. **Table scan on `<temporary>`**: 임시 테이블의 결과를 읽어서 반환합니다. 실제 처리된 시간은 `686ms`이며, `150`개의 행을 처리했습니다.
 
@@ -268,14 +268,14 @@ Evaluation 테이블에 일부 정보(applicant_id, evaluation_id, score)만을 
 ![image](https://github.com/user-attachments/assets/9852c89c-c990-4600-adb4-8b04a31c9dcd)
 
 
-실행 계획을 통해 조금 더 분석을 해봅시다.
+실행 계획을 조금 더 자세히 분석 해봅시다.
 
 ![image](https://github.com/user-attachments/assets/618e35d7-6f09-4161-9c9a-4126435d6be3)
 
 
 실행 계획이 이전과 달라진 것을 알 수 있습니다. 집중해서 볼 부분은 type, key, rows, Extra 칼럼입니다.
 
-1. type(ALL → ref): 특정 인덱스를 통해서만 데이터를 조회됩니다.
+1. type(ALL → ref): 특정 인덱스를 사용하여 데이터가 조회됩니다.
 2. rows(994125 → 4): 994,125개 행에서 4개의 row만 조회할 것으로 예상됩니다. 인덱스를 사용하여 필요한 행만 조회함으로써 성능이 크게 개선되었습니다.
 3. Extra(Using where; Using join buffer → Using index): 추가적인 조건 없이 인덱스 자체로 데이터를 찾아냅니다.
 
