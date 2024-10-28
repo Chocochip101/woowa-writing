@@ -56,7 +56,7 @@ API의 실행 시간을 Grafana 모니터링 툴로 관측해보겠습니다.
 
 ![image](https://github.com/user-attachments/assets/61c5967f-e3e8-42a3-8288-0b9a63f057c9)
 
-실행 시간이 1초를 넘는 API가 있습니다!  `PATCH /v1/processes/{processes}`, `GET /v1/processes` API를 튜닝해 보겠습니다.
+실행 시간이 1초를 넘는 API가 있습니다.  `PATCH /v1/processes/{processes}`, `GET /v1/processes` API를 튜닝해 보겠습니다.
 
 ---
 
@@ -314,7 +314,7 @@ Evaluation 테이블에 일부 정보(applicant_id, evaluation_id, score)만을 
 
 # 쿼리 성능 개선 결과
 
-최종적으로 평균 API 실행 시간이 900ms에서 101ms로 최적화되었습니다!
+최종적으로 평균 API 실행 시간이 900ms에서 101ms로 최적화되었습니다.
 
 
 ![image](https://github.com/user-attachments/assets/7e98c668-39f1-4a47-9c3e-ef31d922a2a7)
