@@ -267,12 +267,12 @@ type이 ALL이기 때문에 Full Table Scan으로 실행되고, 어떠한 인덱
 ![image](https://github.com/user-attachments/assets/35139b2f-9634-4754-ad94-0715fc55d5e8)
 
 
-1. **Table scan on `e1_0`**:  Evaluation 테이블에 대한 Full Table Scan을 진행합니다. 총 `994125`개의 행을 처리하고, 실제 실행 시간은 `0.0489ms`~ `331ms`입니다.
-2. **Index range scan on `a1_0` using `fk_applicant_to_process`**:`fk_applicant_to_process` 인덱스를 사용한 범위 스캔입니다. 이는 효율적으로 인덱스를 사용하여 `process_id`가 `1, 2, 3, 4`인 항목을 스캔한 것입니다. 실제 실행 시간은 `0.0653ms`~ `0.382ms` 사이이며, `150`개의 행이 처리합니다.
-3. **Hash**: 해시 작업이 수행된 것으로, 조인을 효율적으로 수행하기 위해 데이터를 해싱한 단계입니다. 
-4. **Left hash join:** 해시 조인 방식으로 Applicant 테이블과 Evaluation 테이블을 조인합니다. 실제 시간이 `503ms`에서 `685ms` 사이이며, `742`개의 행을 처리했습니다.
-5. **Aggregate using temporary table**: 임시 테이블을 사용한 집계 작업을 수행합니다. SELECT에서 사용된 `count()`   , `avg()` 를 처리합니다. 
-6. **Table scan on `<temporary>`**: 임시 테이블의 결과를 읽어서 반환합니다. 실제 처리된 시간은 `686ms`이며, `150`개의 행을 처리했습니다.
+1. Table scan on `e1_0`:  Evaluation 테이블에 대한 Full Table Scan을 진행합니다. 총 `994125`개의 행을 처리하고, 실제 실행 시간은 `0.0489ms`~ `331ms`입니다.
+2. Index range scan on `a1_0` using `fk_applicant_to_process`:`fk_applicant_to_process` 인덱스를 사용한 범위 스캔입니다. 이는 효율적으로 인덱스를 사용하여 `process_id`가 `1, 2, 3, 4`인 항목을 스캔한 것입니다. 실제 실행 시간은 `0.0653ms`~ `0.382ms` 사이이며, `150`개의 행이 처리합니다.
+3. Hash: 해시 작업이 수행된 것으로, 조인을 효율적으로 수행하기 위해 데이터를 해싱한 단계입니다. 
+4. Left hash join: 해시 조인 방식으로 Applicant 테이블과 Evaluation 테이블을 조인합니다. 실제 시간이 `503ms`에서 `685ms` 사이이며, `742`개의 행을 처리했습니다.
+5. Aggregate using temporary table: 임시 테이블을 사용한 집계 작업을 수행합니다. SELECT에서 사용된 `count()`   , `avg()` 를 처리합니다. 
+6. Table scan on `<temporary>`: 임시 테이블의 결과를 읽어서 반환합니다. 실제 처리된 시간은 `686ms`이며, `150`개의 행을 처리했습니다.
 
 Evaluation 테이블에서 Full Table Scan이 발생하고 있어서 약 10만개의 row를 조회하고 있습니다.
 
