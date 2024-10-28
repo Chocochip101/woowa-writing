@@ -30,11 +30,10 @@
 | ANSWER | 1,000,000 | - |
 | EVALUATION | 1,000,000 | - |
 
-위 세 가지 방법 중 LOAD DATA LOCAL INFILE 명령어를 사용하여 CSV 파일을 임포트하는 방법을 선택했습니다. 이 방법을 통해 100만 건의 데이터를 단 6초 만에 삽입할 수 있었습니다.
 ## 대량 데이터 삽입 방법
-데이터베이스에 대량 데이터를 삽입하는 두 가지 방법을 고려하였습니다.
+데이터베이스에 대량 데이터를 삽입하는 세 가지 방법을 고려하였습니다.
 
-### 엑셀로 랜덤 데이터 생성 후 INSERT문을 통한 삽입
+### INSERT문을 통한 삽입
 엑셀을 이용해 랜덤 데이터를 생성한 후, 이를 INSERT문으로 변환하여 하나씩 데이터를 삽입하는 방법입니다. 엑셀의 랜덤 함수와 텍스트 결합 기능을 이용해 대량 데이터를 생성할 수 있습니다.
 엑셀 함수로 원하는 형태의 데이터를 세밀하게 생성할 수 있습니다. 수작업으로 INSERT문을 생성하고 실행해야 하므로, 대량 데이터를 삽입하는 데 시간이 너무 오래 걸립니다. 100만 건을 삽입하는 데 몇 시간이 소요될 수 있습니다.
 
@@ -56,13 +55,13 @@ API의 실행 시간을 Grafana 모니터링 툴로 관측해보겠습니다.
 
 ![image](https://github.com/user-attachments/assets/61c5967f-e3e8-42a3-8288-0b9a63f057c9)
 
-실행 시간이 1초를 넘는 API가 있습니다.  `PATCH /v1/processes/{processes}`, `GET /v1/processes` API를 튜닝해 보겠습니다.
+실행 시간이 1초가 넘는 API가 있습니다.  `PATCH /v1/processes/{processes}`, `GET /v1/processes` API를 튜닝해 보겠습니다.
 
 ---
 
 # 쿼리 성능 개선
 
-먼저 `GET /v1/processes` 에서 실행되는 쿼리를 살펴봅시다.
+먼저 `GET /v1/processes` API에서 실행되는 쿼리를 살펴보았습니다.
 
 ```sql
 select * from member m1_0 where m1_0.email=?
@@ -82,11 +81,11 @@ select count(e1_0.evaluation_id) from evaluation e1_0 where e1_0.applicant_id=? 
 select * from evaluation e1_0 where e1_0.process_id=? and e1_0.applicant_id=?
 ```
 
-총 200여 개의 쿼리가 실행되었습니다.
+총 200여 개의 쿼리가 실행되는 것을 확인했습니다.
 
-Lazy Loading으로 인한 N+1 쿼리 발생과 로직의 비효율성 때문에 `select count(e1_0.evaluation_id)` 및 `select e1_0.evaluation_id, ...` 쿼리가 많이 반복되어 실행되는 것을 알 수 있습니다. 
+현재 모든 Entity에서 Lazy Loading으로 인해 N+1 쿼리가 발생하고 있으며, 이로 인해 `select count(e1_0.evaluation_id)`와 `select e1_0.evaluation_id, ...` 쿼리가 반복적으로 실행되고 있음을 알 수 있었습니다.
 
-먼저 인덱스를 적용하여 반복되는 단건 조회 쿼리의 처리 속도를 향상해 보겠습니다.
+이를 해결하기 위해 먼저 인덱스를 적용하여 반복적으로 실행되는 단건 조회 쿼리의 처리 속도를 개선하는 방향으로 접근했습니다.
 
 ## 인덱스를 적용하여 단건 조회 쿼리의 처리 속도 개선하기
 
@@ -96,11 +95,9 @@ Lazy Loading으로 인한 N+1 쿼리 발생과 로직의 비효율성 때문에 
 where e1_0.applicant_id=? and e1_0.process_id=?
 ```
 
-`applicant_id` 와  `process_id` 칼럼을 조건으로 지정하고 있으므로 복합 인덱스를 적용하기로 했습니다. 
+`applicant_id`와  `process_id` 칼럼을 조건으로 지정하고 있으므로 복합 인덱스를 적용하기로 했습니다. 
 
-그러면 여기서 인덱스의 칼럼 순서는 어떻게 결정해야 할까요? 
-
- 이를 알아보기 위해 (process_id, applicant_id) 인덱스와 (applicant_id, process_id) 인덱스를 생성하여 비교하였습니다.
+그러면 여기서 인덱스의 칼럼 순서는 어떻게 결정해야 할까요? 이를 알아보기 위해 (process_id, applicant_id) 인덱스와 (applicant_id, process_id) 인덱스를 생성하여 비교하였습니다.
 
 
 ![image](https://github.com/user-attachments/assets/0c2b1b8f-e661-4ab7-a976-7b48e932cd80)
@@ -124,10 +121,9 @@ where e1_0.applicant_id=? and e1_0.process_id=?
 
 이전 실행 계획과는 다르게 type, key가 변경되었습니다. type이 ref로 변경되어 인덱스를 사용했으며, 여러 인덱스 중에서 저희가 생성한 `(applicant_id, process_id)` 인덱스를 사용하였음을 알 수 있습니다. 
 
+![image](https://github.com/user-attachments/assets/e2d2a4ae-f573-4e8e-bba1-bc1384ab2d97)
 
-![image](https://github.com/user-attachments/assets/22dc0b21-957c-417e-b0be-825d7007fad0)
-
-실행 시간이 1초 대에서 약 350ms로 많이 줄었습니다. 하지만 해당 관측 결과는 **네트워크 통신 속도를 제외한 결과**이기 때문에 실제 실행 시간은 더 오래 걸릴 수 있습니다.
+실행 시간이 1초 대에서 약 350ms로 줄었습니다. 하지만 해당 관측 결과는 **네트워크 통신 속도를 제외한 결과**이기 때문에 실제 실행 시간은 더 오래 걸릴 수 있습니다.
 
 따라서 최적화가 더 필요하지만, 단일 쿼리 최적화로는 더 이상 속도를 줄이지 못한다고 판단했습니다.
 
@@ -138,18 +134,18 @@ API 하나당에서 실행되는 쿼리의 수를 줄이기 위해 로직을 수
 이전 로직은 다음과 같습니다.
 
 1. dashboardId로 process 조회
-2. process마다 존재하는 applicant 조회 (N+1)
+2. process마다 존재하는 applicant 조회 (N+1개의 쿼리 발생)
 3. applicant마다 evaluation 평균 점수 조회
 
-N+1 문제로 쿼리가 많이 발생하고, 평균 점수를 반복해서 조회하기 때문에 쿼리의 개수가 기하급수적으로 증가합니다.
+N+1 문제로 쿼리가 실행되고, 평균 점수를 반복해서 조회하기 때문에 쿼리의 개수가 기하급수적으로 증가합니다.
 
 따라서 로직을 다음과 같이 수정했습니다.
 
-1. **평균 점수 및 개수**를 projection으로 변환
-2. **Fetch Join**을 활용하여 process, applicant 테이블을 한번에 조회
-3. **IN 절**을 사용해 여러 프로세스를 한 번에 조회
+1. 평균 점수 및 개수를 projection으로 변환
+2. Fetch Join을 활용하여 process, applicant 테이블을 한번에 조회
+3. IN 절을 사용해 여러 프로세스를 한 번에 조회
 
-해당 로직으로 변경한 결과, 데이터의 수와 관계없이 `GET /v1/processes` 요청 시 인가 쿼리 2개와 API 로직으로 발생하는 쿼리 4개로 처리할 수 있습니다.
+해당 로직으로 변경한 결과, 데이터의 수와 관계없이 `GET /v1/processes` API 요청 시 인가 쿼리 2개와 API 로직으로 발생하는 쿼리 4개로 처리할 수 있습니다.
 
 ```sql
 -- 회원 정보 조회
@@ -224,13 +220,10 @@ group by
 
 API 로직을 개선한 후에, 인덱스 없이 API의 실행 시간을 살펴보면 약 700ms로 감소한 것을 확인할 수 있습니다.
 
+![747ms](https://github.com/user-attachments/assets/71b06e7b-9343-4dc1-a356-5d021bf0c0ce)
+![image](https://github.com/user-attachments/assets/f67c4912-5b72-4f29-8fd6-e91f07282206)
 
-![image](https://github.com/user-attachments/assets/ffe4f056-8511-4717-82d8-b5f10913c7ae)
-
-
-![image](https://github.com/user-attachments/assets/1b7b5641-fa0e-4428-b8ae-77d6f65a185c)
-
-그러나 API의 실행 시간은 여전히  700~800ms로 만족스럽지 않습니다. API 로직으로 발생하는 4개의 쿼리 중 병목이 발생할 수 있는 GROUP BY 절과 JOIN 절이 있는 쿼리를 살펴봤습니다.
+그러나 API의 실행 시간은 여전히 700~800ms로 만족스럽지 않습니다. API 로직으로 발생하는 4개의 쿼리 중 병목이 발생할 수 있는 GROUP BY 절과 JOIN 절이 있는 쿼리를 살펴봤습니다.
 
 ```sql
 -- 여러 프로세스 ID에 해당하는 지원자 정보 조회
@@ -262,7 +255,7 @@ group by
 
 type이 ALL이기 때문에 Full Table Scan으로 실행되고, 어떠한 인덱스도 적용되지 않았습니다. 또한 rows 칼럼에서 994,125행을 스캔해야 한다고 예측하고 있습니다.
 
-이어서 `EXPLAIN ANALYZE`를  실행한 결과를 살펴보겠습니다.
+이어서 `EXPLAIN ANALYZE`를 실행한 결과를 살펴보겠습니다.
 
 ![image](https://github.com/user-attachments/assets/35139b2f-9634-4754-ad94-0715fc55d5e8)
 
@@ -271,12 +264,12 @@ type이 ALL이기 때문에 Full Table Scan으로 실행되고, 어떠한 인덱
 2. Index range scan on `a1_0` using `fk_applicant_to_process`:`fk_applicant_to_process` 인덱스를 사용한 범위 스캔입니다. 이는 효율적으로 인덱스를 사용하여 `process_id`가 `1, 2, 3, 4`인 항목을 스캔한 것입니다. 실제 실행 시간은 `0.0653ms`~ `0.382ms` 사이이며, `150`개의 행이 처리합니다.
 3. Hash: 해시 작업이 수행된 것으로, 조인을 효율적으로 수행하기 위해 데이터를 해싱한 단계입니다. 
 4. Left hash join: 해시 조인 방식으로 Applicant 테이블과 Evaluation 테이블을 조인합니다. 실제 시간이 `503ms`에서 `685ms` 사이이며, `742`개의 행을 처리했습니다.
-5. Aggregate using temporary table: 임시 테이블을 사용한 집계 작업을 수행합니다. SELECT에서 사용된 `count()`   , `avg()` 를 처리합니다. 
+5. Aggregate using temporary table: 임시 테이블을 사용한 집계 작업을 수행합니다. SELECT에서 사용된 `count()`, `avg()` 를 처리합니다. 
 6. Table scan on `<temporary>`: 임시 테이블의 결과를 읽어서 반환합니다. 실제 처리된 시간은 `686ms`이며, `150`개의 행을 처리했습니다.
 
 Evaluation 테이블에서 Full Table Scan이 발생하고 있어서 약 10만개의 row를 조회하고 있습니다.
 
-Evaluation에 인덱스를 유도하면, 성능을 높일 수 있습니다. 또한 Evaluation 테이블의 칼럼이 모두 필요한 것이 아니기 때문에 커버링 인덱스를 유도하는 것이 성능에 좋을 것이라 판단했습니다.
+따라서 Evaluation 테이블에 인덱스를 유도하여, 성능을 높일 수 있을 것이라고 판단습니다. Evaluation 테이블의 칼럼이 모두 필요한 것이 아니기 때문에 커버링 인덱스를 유도하는 것이 성능에 좋을 것이라 판단했습니다.
 
 
 <aside>
