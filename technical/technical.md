@@ -117,7 +117,7 @@ select * from evaluation e1_0 where e1_0.process_id=? and e1_0.applicant_id=?
 
 ## API 로직 튜닝
 
-API 하나당 쿼리 수를 줄이기 위해 로직을 수정했습니다.
+API 하나당 실행되는 쿼리 수를 줄이기 위해 로직을 수정했습니다.
 
 이전 로직은 다음과 같습니다.
 
