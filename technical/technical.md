@@ -54,7 +54,13 @@ Grafana를 사용해 API 실행 시간을 모니터링한 결과, 일부 API에�
 
 # 쿼리 성능 개선
 
-먼저 `GET /v1/processes` API에서 실행되는 쿼리를 분석했습니다.
+먼저 `GET /v1/processes` API에서 실행되는 쿼리를 분석했습니다. 
+
+해당 API는 Process, Applicant, Evaluation 등의 엔티티에서 데이터를 가져오며, 다음 ERD에서 그 구조를 확인할 수 있습니다.
+
+![erdsimple.png](https://github.com/user-attachments/assets/a52cd920-3f34-484c-9b2c-569e690bd772) 
+
+다음은 `GET /v1/processes` API 호출 시, 실행되는 쿼리입니다.
 
 ```sql
 select * from member m1_0 where m1_0.email=?
