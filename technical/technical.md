@@ -244,6 +244,14 @@ type이 ALL이기 때문에 Full Table Scan으로 실행되고, 어떠한 인덱
 
 이어서 `EXPLAIN ANALYZE`를 실행한 결과를 살펴보겠습니다.
 
+
+<aside>
+
+💡 `EXPLAIN ANALYZE`는 SQL 쿼리 실행 계획을 분석하고, 실제 실행 시간을 포함한 성능 정보를 제공하는 명령어입니다. 이를 통해 쿼리 최적화에 필요한 정보를 파악할 수 있습니다.
+
+</aside>
+
+
 ![image](https://github.com/user-attachments/assets/35139b2f-9634-4754-ad94-0715fc55d5e8)
 
 
