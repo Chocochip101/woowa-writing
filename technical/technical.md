@@ -206,7 +206,7 @@ group by
     a1_0.process_id; 
 ```
 
-API 로직을 개선한 후에, 인덱스 없이 API의 실행 시간을 살펴보면 약 700ms로 감소한 것을 확인할 수 있습니다.
+API 로직을 개선한 후에, 인덱스가 없는 API의 실행 시간을 살펴보면 약 700ms로 감소한 것을 확인할 수 있습니다.
 
 ![747ms](https://github.com/user-attachments/assets/71b06e7b-9343-4dc1-a356-5d021bf0c0ce)
 
