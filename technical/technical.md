@@ -131,6 +131,10 @@ API 하나당 실행되는 쿼리 수를 줄이기 위해 로직을 수정했습
 2. process마다 존재하는 applicant 조회 (N+1개의 쿼리 발생)
 3. applicant마다 evaluation 평균 점수 조회
 
+그림으로 표현하면 다음과 같습니다.
+
+![logic.png](https://github.com/user-attachments/assets/40ec0bb2-973f-4e6c-bb09-07798f4fdf1d)
+
 N+1 문제로 쿼리가 실행되고, 평균 점수를 반복해서 조회하기 때문에 쿼리의 개수가 기하급수적으로 증가합니다.
 
 따라서 로직을 다음과 같이 수정했습니다.
